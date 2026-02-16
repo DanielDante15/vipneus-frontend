@@ -24,7 +24,7 @@ export interface CreateTireDTO {
 
 export const tiresService = {
   fetchTires: async (): Promise<TireAPI[]> => {
-    const response = await api.get("/tires");
+    const response = await api.get("/tires/");
     return response.data;
   },
   fetchAvailableTires: async (): Promise<TireAPI[]> => {
@@ -33,7 +33,7 @@ export const tiresService = {
   },
 
   createTire: async (data: CreateTireDTO): Promise<TireAPI> => {
-    const response = await api.post("/tires", data);
+    const response = await api.post("/tires/", data);
     return response.data;
   },
 

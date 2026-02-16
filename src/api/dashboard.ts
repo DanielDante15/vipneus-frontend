@@ -34,7 +34,7 @@ export interface DashboardResponse {
 
 export const dashboardService = {
   fetchDashboardData: async (): Promise<DashboardResponse> => {
-    const response = await api.get("/dashboard");
+    const response = await api.get("/dashboard/");
     return response.data;
   },
 };

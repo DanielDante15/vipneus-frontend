@@ -23,12 +23,12 @@ export interface CreatePurchaseDTO {
 
 export const purchaseService = {
   fetchPurchases: async (): Promise<PurchaseAPI[]> => {
-    const response = await api.get("/purchases");
+    const response = await api.get("/purchases/");
     return response.data;
   },
 
   createPurchase: async (data: CreatePurchaseDTO): Promise<PurchaseAPI> => {
-    const response = await api.post("/purchases", data);
+    const response = await api.post("/purchases/", data);
     return response.data;
   },
 
