@@ -30,11 +30,9 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403 ) {
       authService.removeToken();
-      
       window.location.href = "/login";
-      
       return Promise.reject(new Error("Sessão expirada. Faça login novamente."));
     }
     
