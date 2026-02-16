@@ -3,9 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { TireProvider } from "@/contexts/TireContext";
 import { AppLayout } from "@/components/AppLayout";
-
 import StockPage from "@/pages/StockPage";
 import DashboardPage from "@/pages/DashboardPage";
 import PurchasesPage from "@/pages/PurchasesPage";
@@ -25,7 +23,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <TireProvider>
+ 
           <BrowserRouter>
             <Routes>
               <Route 
@@ -47,7 +45,6 @@ const App = () => {
               </Route>
             </Routes>
           </BrowserRouter>
-        </TireProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
