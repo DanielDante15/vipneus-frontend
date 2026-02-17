@@ -34,4 +34,8 @@ export const salesService = {
     const response = await api.get(`/sales/${id}`);
     return response.data;
   },
+
+  deleteSale: async (saleId: string): Promise<void> => {
+    await api.delete(`/sales/${saleId}`);
+  },
 };

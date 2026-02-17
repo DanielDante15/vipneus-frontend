@@ -35,8 +35,8 @@ export default function DashboardPage() {
     { label: "Em Estoque", value: stats.total_tires, icon: Package, color: "text-primary" },
     { label: "Vendidos", value: stats.total_sold, icon: TrendingUp, color: "text-success" },
     { label: "Comprados", value: stats.total_purchased, icon: ShoppingCart, color: "text-chart-3" },
-    { label: "Valor Entrada", value: `R$ ${stats.total_entrada.toFixed(2)}`, icon: TrendingDown, color: "text-destructive" },
-    { label: "Valor Saída", value: `R$ ${stats.total_saida.toFixed(2)}`, icon: DollarSign, color: "text-success" },
+    { label: "Compras", value: `R$ ${stats.total_entrada.toFixed(2)}`, icon: TrendingDown, color: "text-destructive" },
+    { label: "Vendas", value: `R$ ${stats.total_saida.toFixed(2)}`, icon: DollarSign, color: "text-success" },
     { label: "Lucro", value: `R$ ${stats.lucro.toFixed(2)}`, icon: BarChart3, color: stats.lucro >= 0 ? "text-success" : "text-destructive" },
   ];
 

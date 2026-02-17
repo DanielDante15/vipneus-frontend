@@ -2,11 +2,12 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Loader2, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, DollarSign, Loader2, TrendingUp, TrendingDown, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { TireCondition } from "@/types/tire";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -25,6 +26,8 @@ export default function SalesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [saleToDelete, setSaleToDelete] = useState<string | null>(null);
 
   // Filtros para selecionar pneu do estoque
   const [filterMarca, setFilterMarca] = useState("");
@@ -45,7 +48,7 @@ export default function SalesPage() {
   const { data: tires = [], isLoading: loadingTires } = useQuery({
     queryKey: ["tires"],
     queryFn: tiresService.fetchTires,
-    enabled: open, // ← SÓ BUSCA quando a modal estiver aberta
+    enabled: open,
   });
 
   // Mutation para criar venda
@@ -64,6 +67,28 @@ export default function SalesPage() {
     onError: (error: Error) => {
       toast({
         title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // ✅ Mutation para excluir venda
+  const deleteMutation = useMutation({
+    mutationFn: salesService.deleteSale,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
+      queryClient.invalidateQueries({ queryKey: ["tires"] });
+      toast({
+        title: "Venda excluída!",
+        description: "A venda foi removida com sucesso.",
+      });
+      setDeleteDialogOpen(false);
+      setSaleToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao excluir",
         description: error.message,
         variant: "destructive",
       });
@@ -110,6 +135,19 @@ export default function SalesPage() {
     sellMutation.mutate(saleData);
   };
 
+  // ✅ Handler para confirmar exclusão
+  const handleDeleteClick = (saleId: string) => {
+    setSaleToDelete(saleId);
+    setDeleteDialogOpen(true);
+  };
+
+  // ✅ Handler para executar a exclusão
+  const handleConfirmDelete = () => {
+    if (saleToDelete) {
+      deleteMutation.mutate(saleToDelete);
+    }
+  };
+
   const resetForm = () => {
     setFilterMarca("");
     setFilterMedida("");
@@ -118,11 +156,9 @@ export default function SalesPage() {
     setValor("");
   };
 
-  // ✅ LÓGICA CORRIGIDA: Se custo é null, lucro = valor da venda
   const totalVendas = sales.reduce((s, p) => s + p.valor, 0);
   const totalCusto = sales.reduce((s, p) => s + (p.custo || 0), 0);
   const totalLucro = sales.reduce((s, p) => {
-    // Se custo é null, todo o valor da venda é lucro
     const lucro = p.custo !== null ? (p.lucro || 0) : p.valor;
     return s + lucro;
   }, 0);
@@ -366,13 +402,14 @@ export default function SalesPage() {
               <TableHead className="text-right">Custo</TableHead>
               <TableHead className="text-right">Venda</TableHead>
               <TableHead className="text-right">Lucro</TableHead>
+              <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sales.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={9}
                   className="text-center py-12 text-muted-foreground"
                 >
                   Nenhuma venda registrada
@@ -380,7 +417,6 @@ export default function SalesPage() {
               </TableRow>
             ) : (
               [...sales].reverse().map((s) => {
-                // ✅ LÓGICA CORRIGIDA: Se custo null, lucro = valor venda
                 const lucroCalculado = s.custo !== null ? (s.lucro || 0) : s.valor;
                 
                 return (
@@ -418,6 +454,17 @@ export default function SalesPage() {
                         R$ {lucroCalculado.toFixed(2)}
                       </span>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteClick(s.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 );
               })
@@ -425,6 +472,37 @@ export default function SalesPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* ✅ Dialog de confirmação de exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita e o pneu voltará ao estoque como disponível.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSaleToDelete(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
