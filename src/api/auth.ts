@@ -1,3 +1,5 @@
+import { getLoginHref } from "@/lib/routes";
+
 export interface LoginDTO {
   email: string;
   password: string;
@@ -73,6 +75,6 @@ export const authService = {
   // Logout - remove token e pode chamar endpoint do backend se necessário
   logout: () => {
     authService.removeToken();
-    window.location.href = "/login";
+    window.location.href = getLoginHref();
   },
 };

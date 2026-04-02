@@ -1,5 +1,6 @@
 // src/lib/axios.ts
 import { authService } from "@/api/auth";
+import { getLoginHref } from "@/lib/routes";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -32,7 +33,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403 ) {
       authService.removeToken();
-      window.location.href = "/login";
+      window.location.href = getLoginHref();
       return Promise.reject(new Error("Sessão expirada. Faça login novamente."));
     }
     
